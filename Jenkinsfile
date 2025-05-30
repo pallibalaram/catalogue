@@ -10,7 +10,7 @@ pipeline {
     }
     environment {
        packageVersion = '' 
-       nexusUrl =         
+       nexusUrl = '172.31.81.30:8081'         
     }
     // parameters {
     //     string(name: 'PERSON', defaultValue: 'Mr Jenkins', description: 'Who should I say hello to?')
