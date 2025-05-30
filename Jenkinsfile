@@ -9,7 +9,8 @@ pipeline {
         disableConcurrentBuilds()
     }
     environment {
-       packageVersion = ''         
+       packageVersion = '' 
+       nexusUrl =         
     }
     // parameters {
     //     string(name: 'PERSON', defaultValue: 'Mr Jenkins', description: 'Who should I say hello to?')
@@ -39,14 +40,37 @@ pipeline {
                 """ 
             }
         }
-        stage('Build') {
-            steps {
-                echo 'this block is for Building'
-            }
-        }
         stage('Test') {
             steps {
                 echo 'this block is for Testing'
+            }
+        }
+        stage('Build') {
+            steps {
+                sh """
+                    ls -la
+                    zip -q -r catalogue.zip ./* -x ".git" -x "*.zip"
+
+                """
+            }
+        }
+        stage ('publish artifact') {
+            steps {
+                nexusArtifactUploader(
+                    nexusVersion: 'nexus3',
+                    protocol: 'http',
+                    nexusUrl: '${nexusUrl}',
+                    groupId: 'com.roboshop',
+                    version: "${packageVersion}",
+                    repository: 'catalogue',
+                    credentialsId: 'nexus-auth',
+                    artifacts: [
+                        [artifactId: 'catalogue',
+                        classifier: '',
+                        file: 'catalogue.zip',
+                        type: 'zip']
+                    ]
+                )
             }
         }
         stage('Deploy') {
