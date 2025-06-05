@@ -1,47 +1,56 @@
 pipeline {
-    agent { 
+    agent {
         node {
             label 'AGENT-1'
         }
     }
-    environment {
-        packageVersion = '' 
-        nexusURL = '172.31.30.183:8081'
-    }
     options {
-         timeout(time: 1, unit: 'HOURS')
-         disableConcurrentBuilds()
+        timeout(time: 1, unit: 'HOURS') 
+        disableConcurrentBuilds()
+    }
+    environment {
+       packageVersion = '' 
+       nexusUrl = '172.31.81.30:8081'         
     }
     parameters {
     //     string(name: 'PERSON', defaultValue: 'Mr Jenkins', description: 'Who should I say hello to?')
 
     //     text(name: 'BIOGRAPHY', defaultValue: '', description: 'Enter some information about the person')
 
-         booleanParam(name: 'Deploy', defaultValue: false, description: 'Toggle this value')
+           booleanParam(name: 'Deploy', defaultValue: false, description: 'Toggle this value')
 
     //     choice(name: 'CHOICE', choices: ['One', 'Two', 'Three'], description: 'Pick something')
 
     //     password(name: 'PASSWORD', defaultValue: 'SECRET', description: 'Enter a password')
-     }
+    }
     stages {
-        stage 'get the version' {
+        stage('get the version') {
             steps {
                 script {
                     def packageJson = readJSON file: 'package.json'
                     packageVersion = packageJson.version
-                    echo "application version: $packageVersion" 
+                    echo "application version: $packageVersion"
                 }
             }
         }
-        stage('Install dependencies') {
+        stage('install dependencies') {
             steps {
-                npm install
+                sh """ 
+                    npm install
+                """ 
             }
         }
-        stage('Unit tests') {
+        stage('Unit Test') {
             steps {
                 sh """
-                    echo  "unit tests will run here"
+                echo 'this block is for Testing'
+                """
+            }
+        }
+        stage('Sonar Scan'){
+            steps{
+                sh """
+                    sonar-scanner
                 """
             }
         }
@@ -49,23 +58,23 @@ pipeline {
             steps {
                 sh """
                     ls -la
-                    zip -r catalogue.zip ./* -x ".git" -x "*.zip"
-                    ls -ltr 
+                    zip -q -r catalogue.zip ./* -x ".git" -x "*.zip"
+                    ls -ltr
                 """
             }
         }
-        stage 'publishing the artifact' {
+        stage ('publish artifact') {
             steps {
-                nexusArtifactUploader(
+                 nexusArtifactUploader(
                     nexusVersion: 'nexus3',
                     protocol: 'http',
-                    nexusUrl: "${nexusURL}",
+                    nexusUrl: "${nexusUrl}",
                     groupId: 'com.roboshop',
                     version: "${packageVersion}",
                     repository: 'catalogue',
                     credentialsId: 'nexus-auth',
                     artifacts: [
-                        [artifactId: catalogue,
+                        [artifactId: 'catalogue',
                         classifier: '',
                         file: 'catalogue.zip',
                         type: 'zip']
@@ -76,28 +85,29 @@ pipeline {
         stage('Deploy') {
             when {
                 expression {
-                    params.Deploy = 'true'
+                    params.Deploy == 'True'
                 }
-        }
-            steps {
-                sh """
-                    echo  "unit tests will run here"
-                """
             }
+            steps {
+                script {
+                    def params = [
+                        string(name: 'version', value: '${packageVersion}')
+                        string(name: 'environment', value: 'dev')
+                    ] 
+                    build job: "catalogue-deploy", wait: true parameters: params
+                }
+            }    
         }
-        
     }
-    // post build
-    post { 
-        always { 
+    post {
+        always {
             echo 'I will always say Hello again!'
         }
-        failure { 
-            echo 'this runs when pipeline is failed, used generally to send some alerts'
+        success {
+            echo "pipeline is success"
         }
-        success{
-            echo 'I will say Hello when pipeline is success'
-        }
+        failure {
+            echo "pipeline is failed"
+        }    
     }
 }
-    
