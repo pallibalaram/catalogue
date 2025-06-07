@@ -82,12 +82,12 @@ pipeline {
         //             params.Deploy = 'true'
         //         }
         // }
-            steps {
-                sh """
-                    echo  "unit tests will run here"
-                """
-            }
-        }
+        //     steps {
+        //         sh """
+        //             echo  "unit tests will run here"
+        //         """
+        //     }
+        // }
         
     }
     // post build
