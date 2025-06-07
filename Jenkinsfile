@@ -18,14 +18,14 @@ pipeline {
 
     //     text(name: 'BIOGRAPHY', defaultValue: '', description: 'Enter some information about the person')
 
-         booleanParam(name: 'Deploy', defaultValue: false, description: 'Toggle this value')
+        booleanParam(name: 'Deploy', defaultValue: false, description: 'Toggle this value')
 
     //     choice(name: 'CHOICE', choices: ['One', 'Two', 'Three'], description: 'Pick something')
 
     //     password(name: 'PASSWORD', defaultValue: 'SECRET', description: 'Enter a password')
-     }
+    }
     stages {
-        stage 'get the version' {
+        stage ('get the version') {
             steps {
                 script {
                     def packageJson = readJSON file: 'package.json'
@@ -55,7 +55,7 @@ pipeline {
                 """
             }
         }
-        stage 'publishing the artifact' {
+        stage ('publishing the artifact') {
             steps {
                 nexusArtifactUploader(
                     nexusVersion: 'nexus3',
