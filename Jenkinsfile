@@ -76,12 +76,12 @@ pipeline {
                 )
             }
         }
-        stage('Deploy') {
-            when {
-                expression {
-                    params.Deploy = 'true'
-                }
-        }
+        // stage('Deploy') {
+        //     when {
+        //         expression {
+        //             params.Deploy = 'true'
+        //         }
+        // }
             steps {
                 sh """
                     echo  "unit tests will run here"
